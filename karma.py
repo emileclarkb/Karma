@@ -11,10 +11,10 @@ def main():
     coma.FillProviders(component)
     for provider in component.providers.values():
         print(f'{provider.name}: {provider.exists}')
-        
+
     for branch in coma.PROVIDERS['GitHub'].GetBranches(component):
         print(branch)
-        
+
     print('#'*15)
     for release in coma.PROVIDERS['GitHub'].GetReleases(component):
         print(release)
