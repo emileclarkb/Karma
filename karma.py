@@ -3,9 +3,10 @@ import os, sys
 sys.path.append(f'{os.getcwd()}\\..\\..\\Coma\\Repo')
 
 from Coma import Coma
+from Coma.Requirements import Format
 from Coma.Providers import GitHub, GitLab, BitBucket
 
-from Coma.Requirements.Formats.Version import Version
+
 
 
 
@@ -17,43 +18,44 @@ Constaints:
     - prefix and postfix cannot contain digits
 '''
 def main():
-    version_postfixes = ['-alpha', '-beta', '-alphA', '-release']
-    version_format = Version(prefixes = ['v'],
+    '''
+    # version_postfixes = ['-alpha', '-beta', '-release']
+    version_prefixes = ['Alpha-', 'Beta-', 'Release-']
+    version_format = Version(prefixes = version_prefixes,
                              prefix_optional = True,
                              prefix_case_sensitive = False,
-                             version_numbers = 3, 
-                             max_version_digits = 3,
+                             version_numbers = 2, 
+                             max_version_digits = 1,
                              delimiter = '\.',
-                             postfixes = version_postfixes,
-                             postfix_optional = True)
-    
-    version = 'V1.2.3-Alpha'
-    result = version_format.Validate(version)
-    print(f'Success: {result.success}')
-    print(f'Reason: {result.reason}')
-    print()
-    if not result.success: return 1
-    print(f'String: {result.value.string}')
-    print(f'Versions: {result.value.versions}')
-    print(f'Prefix: {result.value.prefix}')
-    print(f'Postfix: {result.value.postfix}')
-    
+                             postfixes = [],
+                             postfix_optional = False)
     '''
-    coma = Coma([GitHub(), GitLab(), BitBucket()])
+    version_postfixes = ['-alpha', '-beta', '-release']
+    version_format = Format.Version(prefixes = ['v'],
+                                    prefix_optional = False,
+                                    prefix_case_sensitive = False,
+                                    version_numbers = 3, 
+                                    max_version_digits = 3,
+                                    delimiter = '\.',
+                                    postfixes = version_postfixes,
+                                    postfix_optional = True,
+                                    postfix_case_sensitive = True)
+    
+    metadata_format = Format.Map({
+        'description': Format.String(max_length=30),
+        'maintained': Format.Boolean(),
+        'latest_version': version_format,
+        'versions': Format.Array(version_format)
+    })
+    
     # component = coma.NewComponent('mkiol', 'dsnote')
-    component = coma.NewComponent('emileclarkb', 'Kara')
-    coma.FillProviders(component)
-    for provider in component.providers.values():
-        if provider is None: continue
-        print(f'{provider.name}')
-
-    for branch in coma.providers['GitHub'].GetBranches(component):
-        print(branch)
-
-    print('#'*15)
-    for release in coma.providers['GitHub'].GetReleases(component):
-        print(release)
-        '''
+    
+    coma = Coma([GitHub()])
+    coma.RequireFile('module.json', 'json', format=metadata_format)
+    component = coma.NewComponent('emileclarkb', 'KarmaTemplate')
+    result = coma.IsPackage(component)
+    print(result)
+    
 if __name__ == '__main__':
     try:
         main()
